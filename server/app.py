@@ -32,12 +32,34 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
-@app.get("/health")
+# Enhance API Metadata
+app.title = "Last Mile Delivery (LMD) Environment"
+app.description = """
+### Logistics Simulation for Agentic AI
+
+This environment simulates a real-world last-mile delivery scenario where an AI agent dispatches 
+a fleet of vehicles to fulfill customer orders across a synthetic city grid.
+
+**Key Features:**
+* **Physics-based travel**: Travel time and reward are derived from Euclidean distances.
+* **Constraints**: Agents must manage vehicle load capacity and delivery time windows.
+* **Dynamic Challenges**: Hard mode introduces random vehicle breakdowns and order priorities.
+* **Standardized Rewards**: All signals are normalized between 0.0 and 1.0 for cross-evaluation.
+
+**Getting Started:**
+1. Call `/reset` with a difficulty level to start an episode.
+2. Call `/step` repeatedly to dispatch orders until `done` is true.
+3. Use `/state` to track cumulative progress.
+"""
+app.version = "1.0.0"
+
+
+@app.get("/health", summary="Health Check", description="Checks if the environment server is responsive.")
 def health():
     return {"status": "ok"}
 
 
-@app.get("/")
+@app.get("/", summary="Root Redirect", description="Redirects to this interactive documentation page.")
 def index():
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/docs")
