@@ -27,6 +27,7 @@ from server.models import LmdAction, LmdObservation, OrderStatus
 client = OpenAI(
     base_url=API_BASE_URL,
     api_key=HF_TOKEN or "hf-no-key",
+    timeout=20.0,
 )
 
 # ── Constants ───────────────────────────────────────────────────────
@@ -35,31 +36,19 @@ GRADER_SEEDS = [42, 123, 7, 99, 256]
 
 # ── Logging Helpers ─────────────────────────────────────────────────
 def log_start(task: str, env: str, model: str):
-    print(json.dumps({
-        "type": "[START]",
-        "task": task,
-        "env": env,
-        "model": model,
-    }), flush=True)
+    print(f"[START] task={task} env={env} model={model}", flush=True)
 
 def log_step(step: int, action: Any, reward: float, done: bool, error: Optional[str] = None):
-    print(json.dumps({
-        "type": "[STEP]",
-        "step": step,
-        "action": action,
-        "reward": round(reward, 4),
-        "done": done,
-        "error": error,
-    }), flush=True)
+    # Using compact JSON for the action dictionary to avoid spaces breaking key=value parsing
+    action_str = json.dumps(action, separators=(',', ':'))
+    log_msg = f"[STEP] step={step} action={action_str} reward={round(reward, 4)} done={str(done).lower()}"
+    if error:
+        log_msg += f" error={json.dumps(error)}"
+    print(log_msg, flush=True)
 
-def log_end(success: bool, steps: int, score: float, rewards: List[float]):
-    print(json.dumps({
-        "type": "[END]",
-        "success": success,
-        "steps": steps,
-        "score": round(score, 4),
-        "rewards": [round(r, 4) for r in rewards],
-    }), flush=True)
+def log_end(task: str, success: bool, steps: int, score: float, rewards: List[float]):
+    # Format according to validator: [END] task=NAME score=0.95 steps=1
+    print(f"[END] task={task} score={round(score, 4)} steps={steps} success={str(success).lower()}", flush=True)
 
 # ── Agent Heuristics & LLM calls ────────────────────────────────────
 
@@ -136,8 +125,9 @@ def run_episode(difficulty: str, seed: int, track_logs: bool = False):
     steps_taken = 0
     max_steps = len(env._orders) + 5
     
+    task_id = f"lmd_{difficulty}"
     if track_logs:
-        log_start(task=f"lmd_{difficulty}", env="lmd_v1", model=MODEL_NAME)
+        log_start(task=task_id, env="lmd_v1", model=MODEL_NAME)
 
     for step in range(1, max_steps + 1):
         if env._is_done():
@@ -180,7 +170,7 @@ def run_episode(difficulty: str, seed: int, track_logs: bool = False):
     success = score >= SUCCESS_SCORE_THRESHOLD
     
     if track_logs:
-        log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
+        log_end(task=task_id, success=success, steps=steps_taken, score=score, rewards=rewards)
         
     return score
 
