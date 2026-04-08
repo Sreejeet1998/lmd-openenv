@@ -25,6 +25,16 @@ Logistics and last-mile delivery represent one of the most complex optimization 
 | medium | 10     | 2        | Weight capacity constraints |
 | hard   | 15     | 3        | Time windows + priorities + vehicle breakdown |
 
+## API Endpoints
+
+This environment exposes the standard OpenEnv FastAPI interface:
+- `POST /reset`: Initialize simulation with `{"difficulty": "easy|medium|hard"}`.
+- `POST /step`: Dispatch orders via `LmdAction`.
+- `GET /state`: Retrieve current simulation state.
+- `GET /health`: Deployment health check.
+
+Interactive Swagger documentation is available at the root URL of the Space.
+
 ## Environment Variables (Required for Inference)
 
 ```bash
