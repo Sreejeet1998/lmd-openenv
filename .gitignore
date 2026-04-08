@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+openenv_lmd/
+
+# Local configuration
+.env
+.python-version
+uv.lock (keep this if you want reproducible builds, but usually it's at root)
+
+# Editor stuff
+.vscode/
+.idea/
+
+# Specific stuff
+help.txt
+*.log
+.gemini/
+.antigravityignore

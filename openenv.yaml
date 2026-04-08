@@ -1,0 +1,42 @@
+spec_version: 1
+name: lmd
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
+
+description: |
+  Last Mile Delivery (LMD) is a logistics simulation task where an agent must assign orders to vehicles. 
+  The goal is to maximize delivery success while satisfying constraints like vehicle capacity, time windows, and handling vehicle breakdowns.
+
+tasks:
+  - id: easy
+    name: Easy Delivery
+    description: 5 orders, 1 vehicle, no constraints. Perfect for testing basic logic.
+    baseline_score: 0.9791
+  - id: medium
+    name: Medium Delivery
+    description: 10 orders, 2 vehicles, weight capacity constraints.
+    baseline_score: 0.9873
+  - id: hard
+    name: Hard Delivery
+    description: 15 orders, 3 vehicles, time windows, priority bonuses, and random vehicle breakdowns.
+    baseline_score: 0.9658
+
+action_space:
+  description: The agent can assign an order to a vehicle or trigger a replan.
+  schema:
+    order_id: "string (optional) - The ID of the order to assign."
+    vehicle_id: "string (optional) - The ID of the vehicle to assign it to."
+    replan: "boolean (optional) - If true, triggers a recalculation step."
+
+observation_space:
+  description: Provides full state of the environment including orders, vehicles, and current time.
+  schema:
+    orders: "List of Order objects (id, location, weight, time_window, status, priority)."
+    vehicles: "List of Vehicle objects (id, location, capacity, is_broken)."
+    current_time: "float - Elapsed time in the simulation."
+    task_difficulty: "string - Current difficulty level."
+    message: "string - Contextual message from the environment."
+    reward: "float - Reward from the previous action."
+    done: "boolean - Whether the episode is finished."
