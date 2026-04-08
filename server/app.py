@@ -36,6 +36,12 @@ app = create_app(
 def health():
     return {"status": "ok"}
 
+
+@app.get("/")
+def index():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/docs")
+
 def main():
     import uvicorn
     import argparse
