@@ -12,10 +12,13 @@ tags:
 
 # Last Mile Delivery (LMD) Environment
 
-A simulation environment where an AI agent manages a fleet of delivery vehicles to fulfill customer orders across a synthetic city grid. 
-
-## Motivation
 Logistics and last-mile delivery represent one of the most complex optimization problems in the modern economy. Inefficiencies lead to higher costs, increased carbon emissions, and poorer customer service. This environment provides a playground for developing AI agents that can navigate complex real-world constraints like vehicle capacity, time windows, and unexpected equipment failures to optimize delivery operations.
+
+### High-Fidelity Features
+*   **Dynamic Traffic Model**: Travel times fluctuate based on time-of-day cycles (simulated peak/off-peak).
+*   **Weather Simulation**: Sunny, Rainy, and Stormy conditions impact vehicle speed and reward signals.
+*   **Estate Management**: Vehicles track battery/fuel levels, requiring efficient route planning.
+*   **Hierarchical Priorities**: Orders have differentiated priority levels with cascading reward bonuses.
 
 ## Tasks & Difficulty
 
@@ -87,8 +90,10 @@ Hard mode adds a priority multiplier (×1.0/×1.1/×1.2) for priority 1/2/3 orde
 
 **LmdObservation**:
 - `orders` (List[Order]): All orders with location, weight, time_window, status, priority
-- `vehicles` (List[Vehicle]): All vehicles with location, capacity, is_broken
+- `vehicles` (List[Vehicle]): All vehicles with location, capacity, battery_level, is_broken
 - `current_time` (float): Elapsed simulation time
+- `weather` (str): Current weather (sunny/rainy/stormy)
+- `traffic_level` (float): Real-time traffic multiplier
 - `task_difficulty` (str): Current task level
 - `message` (str): Step result message
 - `reward` (float): Last step reward

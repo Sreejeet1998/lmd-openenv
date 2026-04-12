@@ -19,6 +19,7 @@ from pydantic import Field, BaseModel
 class OrderStatus(str, Enum):
     PENDING = "pending"
     ASSIGNED = "assigned"
+    PICKED_UP = "picked_up"
     DELIVERED = "delivered"
     FAILED = "failed"
 
@@ -38,6 +39,7 @@ class Vehicle(BaseModel):
     capacity: float
     max_capacity: float
     is_broken: bool = False
+    battery_level: float = 100.0  # Added for realism
 
 
 class LmdAction(Action):
@@ -53,6 +55,8 @@ class LmdObservation(Observation):
     vehicles: List[Vehicle] = Field(default_factory=list)
     current_time: float = 0.0
     task_difficulty: str = "easy"
+    weather: str = "sunny"  # sunny, rainy, stormy
+    traffic_level: float = 1.0  # multiplier for travel time
     message: str = Field(default="", description="Status message")
     reward: float = 0.0
     done: bool = False

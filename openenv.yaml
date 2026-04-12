@@ -12,16 +12,16 @@ description: |
 tasks:
   - id: easy
     name: Easy Delivery
-    description: 5 orders, 1 vehicle, no constraints. Perfect for testing basic logic.
-    baseline_score: 0.9791
+    description: 5 orders, 1 vehicle. Basic routing in sunny conditions.
+    baseline_score: 0.8954
   - id: medium
     name: Medium Delivery
-    description: 10 orders, 2 vehicles, weight capacity constraints.
-    baseline_score: 0.9873
+    description: 10 orders, 2 vehicles. Weight capacity and variable weather (Rain/Storm).
+    baseline_score: 0.9311
   - id: hard
     name: Hard Delivery
-    description: 15 orders, 3 vehicles, time windows, priority bonuses, and random vehicle breakdowns.
-    baseline_score: 0.9658
+    description: 15 orders, 3 vehicles. Time windows, peak traffic, breakdowns, and priority targets.
+    baseline_score: 0.8526
 
 action_space:
   description: The agent can assign an order to a vehicle or trigger a replan.

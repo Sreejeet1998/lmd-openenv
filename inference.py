@@ -36,19 +36,21 @@ GRADER_SEEDS = [42, 123, 7, 99, 256]
 
 # ── Logging Helpers ─────────────────────────────────────────────────
 def log_start(task: str, env: str, model: str):
+    # env should match name in openenv.yaml
     print(f"[START] task={task} env={env} model={model}", flush=True)
 
 def log_step(step: int, action: Any, reward: float, done: bool, error: Optional[str] = None):
-    # Using compact JSON for the action dictionary to avoid spaces breaking key=value parsing
+    # Using compact JSON for the action dictionary
     action_str = json.dumps(action, separators=(',', ':'))
-    log_msg = f"[STEP] step={step} action={action_str} reward={round(reward, 4)} done={str(done).lower()}"
+    # Ensure all values are correctly formatted
+    log_msg = f"[STEP] step={step} action={action_str} reward={float(round(reward, 4))} done={str(done).lower()}"
     if error:
         log_msg += f" error={json.dumps(error)}"
     print(log_msg, flush=True)
 
 def log_end(task: str, success: bool, steps: int, score: float, rewards: List[float]):
-    # Format according to validator: [END] task=NAME score=0.95 steps=1
-    print(f"[END] task={task} score={round(score, 4)} steps={steps} success={str(success).lower()}", flush=True)
+    # Ensure success is lowercase 'true'/'false'
+    print(f"[END] task={task} score={float(round(score, 4))} steps={steps} success={str(success).lower()}", flush=True)
 
 # ── Agent Heuristics & LLM calls ────────────────────────────────────
 
@@ -72,6 +74,8 @@ def _build_prompt(obs: LmdObservation, difficulty: str) -> str:
 
 Difficulty: {difficulty}
 Current time: {obs.current_time:.1f}
+Weather: {obs.weather}
+Traffic: {obs.traffic_level}x slower
 
 PENDING ORDERS:
 {order_lines if order_lines else '  (none)'}
@@ -83,8 +87,9 @@ Respond with valid JSON only:
 {{"order_id": "<order_id>", "vehicle_id": "<vehicle_id>"}}
 
 Rules:
-- Pick the order with the earliest time-window deadline first.
-- Assign it to the nearest available vehicle.
+- Primary: Pick the order with the earliest time-window deadline.
+- Secondary: If multiple deadlines are far off, pick the nearest one.
+- Logistics: Account for weather/traffic delays. Assign to vehicles with high battery/capacity.
 - If no orders or vehicles remain, respond: {{"order_id": null, "vehicle_id": null}}
 """
 
@@ -125,22 +130,23 @@ def run_episode(difficulty: str, seed: int, track_logs: bool = False):
     steps_taken = 0
     max_steps = len(env._orders) + 5
     
-    task_id = f"lmd_{difficulty}"
+    task_id = difficulty  # Matches tasks[].id in openenv.yaml
     if track_logs:
-        log_start(task=task_id, env="lmd_v1", model=MODEL_NAME)
+        log_start(task=task_id, env="lmd", model=MODEL_NAME)
 
     for step in range(1, max_steps + 1):
         if env._is_done():
             break
             
-        decision = _call_llm(_build_prompt(obs, difficulty))
+        decision = None
+        if HF_TOKEN and HF_TOKEN != "hf-no-key":
+            decision = _call_llm(_build_prompt(obs, difficulty))
+        
+        if not decision or not decision.get("order_id") or not decision.get("vehicle_id"):
+            decision = _greedy_fallback(obs)
+            
         order_id = decision.get("order_id")
         vehicle_id = decision.get("vehicle_id")
-        
-        if not order_id or not vehicle_id:
-            decision = _greedy_fallback(obs)
-            order_id = decision["order_id"]
-            vehicle_id = decision["vehicle_id"]
             
         if not order_id or not vehicle_id:
             break
@@ -175,14 +181,25 @@ def run_episode(difficulty: str, seed: int, track_logs: bool = False):
     return score
 
 def main():
-    for diff in ["easy", "medium", "hard"]:
-        # Run representative logs for seed 42
-        run_episode(diff, 42, track_logs=True)
-        
-        # Then calculate average cross-seed score for internal verification (optional output)
-        seed_scores = [run_episode(diff, s, track_logs=False) for s in GRADER_SEEDS]
-        mean_score = sum(seed_scores) / len(seed_scores)
-        print(f"[INTERNAL] Task {diff} Mean Score: {mean_score:.4f}", file=sys.stderr)
+    # If TASK_ID is provided by the validator, run only that task
+    target_task = os.environ.get("TASK_ID")
+    
+    if target_task:
+        # Clean up task ID (handle both 'easy' and 'lmd_easy')
+        clean_task = target_task.replace("lmd_", "").lower()
+        if clean_task in ["easy", "medium", "hard"]:
+            run_episode(clean_task, 42, track_logs=True)
+        else:
+            print(f"Unknown task: {target_task}. Expected one of: easy, medium, hard", file=sys.stderr)
+    else:
+        # Local testing: run all tasks
+        for diff in ["easy", "medium", "hard"]:
+            run_episode(diff, 42, track_logs=True)
+            
+            # Optional: calculate average cross-seed score for internal verification
+            seed_scores = [run_episode(diff, s, track_logs=False) for s in GRADER_SEEDS]
+            mean_score = sum(seed_scores) / len(seed_scores)
+            print(f"[INTERNAL] Task {diff} Mean Score: {mean_score:.4f}", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
