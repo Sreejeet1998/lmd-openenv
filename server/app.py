@@ -67,10 +67,10 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/", summary="Root Redirect", description="Redirects to this interactive documentation page.")
+@app.get("/", summary="Root Redirect", description="Redirects to the interactive Gradio UI.")
 def index():
     from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/docs")
+    return RedirectResponse(url="/ui")
 
 def main():
     import uvicorn
