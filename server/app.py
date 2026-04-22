@@ -32,6 +32,14 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
+# Mount Gradio UI
+try:
+    from .ui import create_ui
+    import gradio as gr
+    app = gr.mount_gradio_app(app, create_ui(), path="/ui")
+except Exception as e:
+    print(f"Could not mount Gradio UI: {e}")
+
 # Enhance API Metadata
 app.title = "Last Mile Delivery (LMD) Environment"
 app.description = """
@@ -49,7 +57,7 @@ a fleet of vehicles to fulfill customer orders across a synthetic city grid.
 **Getting Started:**
 1. Call `/reset` with a difficulty level to start an episode.
 2. Call `/step` repeatedly to dispatch orders until `done` is true.
-3. Use `/state` to track cumulative progress.
+5. **Interactive UI**: A Gradio-based front-end is available at `/ui` for manual testing and visualization.
 """
 app.version = "1.0.0"
 

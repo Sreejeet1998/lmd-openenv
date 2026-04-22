@@ -37,6 +37,13 @@ This environment exposes the standard OpenEnv FastAPI interface:
 - `GET /health`: Deployment health check.
 
 Interactive Swagger documentation is available at the root URL of the Space.
+A premium **Gradio Front-end** is also available at `/ui` for real-time visualization and manual testing.
+
+### 🎮 Interactive UI Features
+*   **Real-time Map**: Visualize the city grid, vehicle movements, and order pickups.
+*   **Metrics Dashboard**: Monitor traffic levels, weather changes, and delivery efficiency.
+*   **Manual Dispatch**: Hand-pick orders and vehicles to test strategies.
+*   **AI Autopilot**: Watch the heuristic or LLM-based agent solve the scenario.
 
 ## Environment Variables (Required for Inference)
 
