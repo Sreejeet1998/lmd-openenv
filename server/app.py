@@ -36,7 +36,8 @@ app = create_app(
 try:
     from .ui import create_ui
     import gradio as gr
-    app = gr.mount_gradio_app(app, create_ui(), path="/ui")
+    # Mount at / so it's the primary interface
+    app = gr.mount_gradio_app(app, create_ui(), path="/")
 except Exception as e:
     print(f"Could not mount Gradio UI: {e}")
 
@@ -68,12 +69,7 @@ def health():
 
 
 
-@app.get("/", summary="Root Redirect", description="Redirects to the interactive Gradio UI.")
-def index(request: Request):
-    from fastapi.responses import RedirectResponse
-    # Redirect to /ui/ relative to the current host
-    url = str(request.base_url).rstrip("/") + "/ui/"
-    return RedirectResponse(url=url)
+
 
 def main():
     import uvicorn
