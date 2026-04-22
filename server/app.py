@@ -22,7 +22,7 @@ except (ImportError, ModuleNotFoundError):
         from models import LmdAction, LmdObservation
         from lmd_environment import LmdEnvironment
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 app = create_app(
     LmdEnvironment,
@@ -67,10 +67,13 @@ def health():
     return {"status": "ok"}
 
 
+
 @app.get("/", summary="Root Redirect", description="Redirects to the interactive Gradio UI.")
-def index():
+def index(request: Request):
     from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="ui")
+    # Redirect to /ui/ relative to the current host
+    url = str(request.base_url).rstrip("/") + "/ui/"
+    return RedirectResponse(url=url)
 
 def main():
     import uvicorn
